@@ -43,6 +43,18 @@ def fix_round(f):
     else:
         return f
     
+def team_loc(team):
+    au = ['Brumbies','Rebels','Reds','Sunwolves','Waratahs','Western Force']
+    nz = ['Blues','Chiefs','Crusaders','Highlanders','Hurricanes']
+    sa = ['Bulls','Jaguares','Lions','Sharks','Stormers','Cheetahs','Kings']
+    x = ''
+    if any(team in s for s in au):
+        x = 'au'
+    if any(team in s for s in nz):
+        x = 'nz'
+    if any(team in s for s in sa):
+        x = 'sa'
+    return x
 
 def name_fixer(name):
     if 'High' in name:
@@ -89,6 +101,8 @@ def data_nice(year):
     df['away'] = df['away'].str.strip()
     df['home'] = [name_fixer(str(x)) for x in df['home']]
     df['away'] = [name_fixer(str(x)) for x in df['away']]
+    df['home_loc'] = [team_loc(str(x)) for x in df['home']]
+    df['away_loc'] = [team_loc(str(x)) for x in df['away']]
     df['fthp'] = df['score'].str.split('-').str[0].astype('int') # full time home points
     df['ftap'] = df['score'].str.split('-').str[1].astype('int') # full time away points
     df['ftr'] = [outcome(x) for x in df['fthp'] - df['ftap']] # home outcome ftr (full time result)
@@ -115,22 +129,31 @@ df_2017 = data_nice('2017')
 df_2018 = data_nice('2018')
 df_2019 = data_nice('2019')
 
+print(df_2010.columns)
+
 # more fixing data inconsistancies
 df_2005.loc[(df_2005['date'] == '28 May 2005'), 'round'] = "GF" # 2005 no final fixed
 df_2006.drop(5, inplace=True) # remove bogus final data from 2006
 df_2018.drop(10, inplace=True) # remove bogus final data from 2018
 # List of series missing from each year
-missing_games_2007 = [pd.Series(['12 May 2007', 'SF', 'Sharks', 'Blues', 34, 18, 'V'], index=df_2007.columns ) ,
-                      pd.Series(['12 May 2007', 'SF', 'Bulls', 'Crusaders', 27, 12, 'V'], index=df_2007.columns )]
 
-missing_games_2008 = [pd.Series(['31 May 2008', 'GF', 'Crusaders', 'Waratahs', 20, 12, 'V'], index=df_2008.columns ) ,
-                      pd.Series(['24 May 2008', 'SF', 'Waratahs', 'Sharks', 28, 13, 'V'], index=df_2008.columns ),
-                      pd.Series(['24 May 2008', 'SF', 'Crusaders', 'Hurricanes', 33, 22, 'V'], index=df_2008.columns )]
+'''
+au = ['Brumbies','Rebels','Reds','Sunwolves','Waratahs','Western Force']
+nz = ['Blues','Chiefs','Crusaders','Highlanders','Hurricanes']
+sa = ['Bulls','Jaguares','Lions','Sharks','Stormers','Cheetahs','Kings']
+'''
 
-missing_games_2017 = [pd.Series(['21 Jul 2017', 'QF', 'Brumbies', 'Hurricanes', 16, 35, 'L'], index=df_2017.columns ) ,
-                      pd.Series(['22 Jul 2017', 'QF', 'Crusaders', 'Highlanders', 17, 0, 'V'], index=df_2017.columns ),
-                      pd.Series(['23 Jul 2017', 'QF', 'Lions', 'Sharks', 23, 21, 'V'], index=df_2017.columns ),
-                      pd.Series(['23 Jul 2017', 'QF', 'Stormers', 'Chiefs', 11, 17, 'L'], index=df_2017.columns )]
+missing_games_2007 = [pd.Series(['12 May 2007', 'SF', 'Sharks', 'Blues', 'sa', 'nz', 34, 18, 'V'], index=df_2007.columns ) ,
+                      pd.Series(['12 May 2007', 'SF', 'Bulls', 'Crusaders', 'sa', 'nz', 27, 12, 'V'], index=df_2007.columns )]
+
+missing_games_2008 = [pd.Series(['31 May 2008', 'GF', 'Crusaders', 'Waratahs', 'nz','au', 20, 12, 'V'], index=df_2008.columns ) ,
+                      pd.Series(['24 May 2008', 'SF', 'Waratahs', 'Sharks', 'au' ,'sa', 28, 13, 'V'], index=df_2008.columns ),
+                      pd.Series(['24 May 2008', 'SF', 'Crusaders', 'Hurricanes', 'nz','nz',33, 22, 'V'], index=df_2008.columns )]
+
+missing_games_2017 = [pd.Series(['21 Jul 2017', 'QF', 'Brumbies', 'Hurricanes', 'au','nz',16, 35, 'L'], index=df_2017.columns ) ,
+                      pd.Series(['22 Jul 2017', 'QF', 'Crusaders', 'Highlanders', 'nz','nz',17, 0, 'V'], index=df_2017.columns ),
+                      pd.Series(['23 Jul 2017', 'QF', 'Lions', 'Sharks', 'sa','sa', 23, 21, 'V'], index=df_2017.columns ),
+                      pd.Series(['23 Jul 2017', 'QF', 'Stormers', 'Chiefs', 'sa','nz',11, 17, 'L'], index=df_2017.columns )]
 
 # Pass a list of series to the append() to add multiple rows to 2007
 df_2007 = df_2007.append(missing_games_2007 , ignore_index=True)
@@ -420,13 +443,13 @@ playing_stat['ftr'] = playing_stat['ftr'].apply(only_hw)
 #print('Distinct Away Teams: ',playing_stat['away'].unique())
 
 
-playing_stat['sf'] = [1 if x == 'SF' else 0 for x in playing_stat['round']]
-playing_stat['qf'] = [1 if x == 'QF' else 0 for x in playing_stat['round']]
-playing_stat['gf'] = [1 if x == 'GF' else 0 for x in playing_stat['round']]
+#playing_stat['sf'] = [1 if x == 'SF' else 0 for x in playing_stat['round']]
+#playing_stat['qf'] = [1 if x == 'QF' else 0 for x in playing_stat['round']]
+#playing_stat['gf'] = [1 if x == 'GF' else 0 for x in playing_stat['round']]
 
 
 
-print(playing_stat[['round','sf','qf','gf']])
+print(playing_stat[['round','home_loc','away_loc']])
 
 
 playing_stat.to_csv("data/final_dataset.csv")
