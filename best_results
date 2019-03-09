@@ -1,0 +1,76 @@
+Training a LogisticRegression using a training set size of 1509. . .
+
+Trained model in 0.0246 seconds
+Made predictions in 0.0010 seconds.
+Training data results:
+              precision    recall  f1-score   support
+
+           H       0.67      0.86      0.75       917
+          NH       0.61      0.34      0.44       592
+
+   micro avg       0.65      0.65      0.65      1509
+   macro avg       0.64      0.60      0.59      1509
+weighted avg       0.64      0.65      0.63      1509
+
+Made predictions in 0.0006 seconds.
+Test data results:
+              precision    recall  f1-score   support
+
+           H       0.69      0.90      0.78        30
+          NH       0.73      0.40      0.52        20
+
+   micro avg       0.70      0.70      0.70        50
+   macro avg       0.71      0.65      0.65        50
+weighted avg       0.71      0.70      0.68        50
+
+
+Training a SVC using a training set size of 1509. . .
+
+Trained model in 0.1065 seconds
+Made predictions in 0.0837 seconds.
+Training data results:
+              precision    recall  f1-score   support
+
+           H       0.66      0.91      0.77       917
+          NH       0.68      0.28      0.40       592
+
+   micro avg       0.67      0.67      0.67      1509
+   macro avg       0.67      0.60      0.58      1509
+weighted avg       0.67      0.67      0.62      1509
+
+Made predictions in 0.0033 seconds.
+Test data results:
+              precision    recall  f1-score   support
+
+           H       0.70      0.93      0.80        30
+          NH       0.80      0.40      0.53        20
+
+   micro avg       0.72      0.72      0.72        50
+   macro avg       0.75      0.67      0.67        50
+weighted avg       0.74      0.72      0.69        50
+
+
+Training a XGBClassifier using a training set size of 1509. . .
+
+Trained model in 0.1158 seconds
+Made predictions in 0.0044 seconds.
+Training data results:
+              precision    recall  f1-score   support
+
+           H       0.73      0.92      0.82       917
+          NH       0.80      0.48      0.60       592
+
+   micro avg       0.75      0.75      0.75      1509
+   macro avg       0.77      0.70      0.71      1509
+weighted avg       0.76      0.75      0.73      1509
+
+Made predictions in 0.0007 seconds.
+Test data results:
+              precision    recall  f1-score   support
+
+           H       0.68      0.87      0.76        30
+          NH       0.67      0.40      0.50        20
+
+   micro avg       0.68      0.68      0.68        50
+   macro avg       0.68      0.63      0.63        50
+weighted avg       0.68      0.68      0.66        50
