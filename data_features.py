@@ -41,7 +41,7 @@ def fix_round(f):
     elif f[:6] == 'Final ' or f == 'Final':
         return 'GF' # grand final
     else:
-        return f
+        return f.strip()
     
 def team_loc(team):
     au = ['Brumbies','Rebels','Reds','Sunwolves','Waratahs','Western Force']
@@ -439,17 +439,31 @@ def only_hw(string):
         return 'NH'
     
 playing_stat['ftr'] = playing_stat['ftr'].apply(only_hw)  
-#print('Distinct Home Teams: ',playing_stat['home'].unique())
-#print('Distinct Away Teams: ',playing_stat['away'].unique())
 
 
-#playing_stat['sf'] = [1 if x == 'SF' else 0 for x in playing_stat['round']]
-#playing_stat['qf'] = [1 if x == 'QF' else 0 for x in playing_stat['round']]
-#playing_stat['gf'] = [1 if x == 'GF' else 0 for x in playing_stat['round']]
+playing_stat['homeaway'] = playing_stat['home'] + playing_stat['away']
+playing_stat['won_last_home'] = [1 if x == 'H' else 0 for x in playing_stat.groupby(['homeaway'])['ftr'].shift(1)]
+
+playing_stat['awayhome'] = playing_stat['away'] + playing_stat['home']
+playing_stat['won_last_away'] = [1 if x == 'NH' else 0 for x in playing_stat.groupby(['awayhome'])['ftr'].shift(1)]
 
 
+print(playing_stat.loc[playing_stat['homeaway'] == 'CrusadersLions'])
+print(playing_stat.loc[playing_stat['awayhome'] == 'CrusadersLions'])
 
-print(playing_stat[['round','home_loc','away_loc']])
+
+'''
+todo
+
+features:
+one hot encode team names
+did home team rank higher than away team last season
+did home team win against away team last time they played
+offense rating (based on wins and points)
+offense rating (based on wins and points)
+
+GridSearch to find parameters
+'''
 
 
 playing_stat.to_csv("data/final_dataset.csv")

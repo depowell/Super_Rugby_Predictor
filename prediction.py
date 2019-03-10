@@ -1,7 +1,11 @@
 #data preprocessing
 import pandas as pd
+import numpy as np
 #produces a prediction model in the form of an ensemble of weak prediction models, typically decision tree
 import xgboost as xgb
+# Grid search cross validation
+from sklearn.model_selection import GridSearchCV
+
 #the outcome (dependent variable) has only a limited number of possible values. 
 #Logistic Regression is used when response variable is categorical in nature.
 from sklearn.linear_model import LogisticRegression
@@ -9,7 +13,7 @@ from sklearn.linear_model import LogisticRegression
 #on various sub-samples of the dataset and use averaging to improve the predictive 
 #accuracy and control over-fitting.
 from sklearn.ensemble import RandomForestClassifier
-#a discriminative classifier formally defined by a separating hyperplane.
+# a discriminative classifier formally defined by a separating hyperplane.
 from sklearn.svm import SVC
 # Standardising the data.
 from sklearn.preprocessing import scale
@@ -18,41 +22,16 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 #for measuring training time
 from time import time 
-
-# F1 score (also F-score or F-measure) is a measure of a test's accuracy. 
-#It considers both the precision p and the recall r of the test to compute 
-#the score: p is the number of correct positive results divided by the number of 
-#all positive results, and r is the number of correct positive results divided by 
-#the number of positive results that should have been returned. The F1 score can be 
-#interpreted as a weighted average of the precision and recall, where an F1 score 
-#reaches its best value at 1 and worst at 0.
 from sklearn.metrics import classification_report
-#f1_score, precision_score, recall_score
-
-#Compute the precision
-#The precision is intuitively the ability of the classifier not to label as positive a sample that is negative.
-#The precision is the ratio tp / (tp + fp) where tp is the number of true positives and fp the number of false positives.
-#The best value is 1 and the worst value is 0.
-
-#Compute the recall
-#The recall is intuitively the ability of the classifier to find all the positive samples.
-#The recall is the ratio tp / (tp + fn) where tp is the number of true positives and fn the number of false negatives.
-#The best value is 1 and the worst value is 0.
-# sklearn.metrics.recall_score(y_true, y_pred, labels=None, pos_label=1, average=’binary’, sample_weight=None)[source]
-
-## steps:
-# 1. visualise data
-# 2. classify SVM xgboost etc
-# 3. validate classifier with confusion matrix
 
 file = 'data/final_dataset.csv'
 
 df = pd.read_csv(file, parse_dates=True)
-print(df['home'].unique())
+#print(df['home'].unique())
 
 # dropping redundant column? not sure if this is true
 drop_columns = ['Unnamed: 0','date','home','away','round','fthp',
-                'ftap','hm4','hm5','am4','am5',
+                'ftap','hm4','hm5','am4','am5', 'homeaway', 'awayhome',
                 'rn','htformptsstr','atformptsstr','HTWinStreak3',
        'HTWinStreak5', 'HTLossStreak3', 'HTLossStreak5', 'ATWinStreak3',
        'ATWinStreak5', 'ATLossStreak3', 'ATLossStreak5']
@@ -60,7 +39,7 @@ drop_columns = ['Unnamed: 0','date','home','away','round','fthp',
 data = df.drop(drop_columns, axis=1)
 
 # Separate into feature set and target variable
-#FTR = Full Time Result (H=Home Win, D=Draw, A=Away Win)
+# ftr = Full Time Result (H = home, NH = not home)
 X_all = data.drop(['ftr'],1)
 y_all = data['ftr']
 
@@ -99,7 +78,7 @@ def preprocess_features(X):
 
 X_all = preprocess_features(X_all)
 print("Processed feature columns ({} total features):\n{}".format(len(X_all.columns), list(X_all.columns)))
-print(X_all.head(5))
+# print(X_all.head(5))
 
 
 # Shuffle and split the dataset into training and testing set.
@@ -154,12 +133,28 @@ def train_predict(clf, X_train, y_train, X_test, y_test):
     print(report, conf)
 
     # Initialize the three models (XGBoost is initialized later)
-clf_A = LogisticRegression(random_state = 22, solver='lbfgs', max_iter=1000)
+clf_A = LogisticRegression(random_state = 1,
+max_iter=1000,
+                            C=100.0,
+                            penalty='l2',
+                            solver='newton-cg',
+                            n_jobs=1)
 clf_B = SVC(random_state = 912, kernel='rbf', gamma='scale')
 #Boosting refers to this general problem of producing a very accurate prediction rule 
 #by combining rough and moderately inaccurate rules-of-thumb
 clf_C = xgb.XGBClassifier(seed = 82)
 
 train_predict(clf_A, X_train, y_train, X_test, y_test); print('')
-# train_predict(clf_B, X_train, y_train, X_test, y_test); print('')
-# train_predict(clf_C, X_train, y_train, X_test, y_test); print('')
+train_predict(clf_B, X_train, y_train, X_test, y_test); print('')
+train_predict(clf_C, X_train, y_train, X_test, y_test); print('')
+
+'''
+#grid={"C":np.logspace(-3,3,7), "penalty":["l2"], "solver":['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']}# l1 lasso l2 ridge
+rands=list([x for x in range(1,101)])
+grid={"max_iter":[1000],"C":np.logspace(-3, 3, 7), "penalty":["l2"], "solver":["newton-cg"], "random_state":[1], "n_jobs":[1], "class_weight":['balanced','None']}
+logreg=LogisticRegression()
+logreg_cv=GridSearchCV(logreg,grid,cv=10)
+logreg_cv.fit(X_train,y_train)
+print("tuned hpyerparameters :(best parameters) ",logreg_cv.best_params_)
+print("accuracy :",logreg_cv.best_score_)
+'''
